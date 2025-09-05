@@ -164,11 +164,13 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        {/* Completed Courses */}
-        <View style={styles.completedCoursesSection}>
-          <Text style={styles.sectionTitle}>Completed Courses</Text>
-          <CompletedCoursesList />
-        </View>
+        {/* Completed Courses - Hidden */}
+        {false && (
+          <View style={styles.completedCoursesSection}>
+            <Text style={styles.sectionTitle}>Completed Courses</Text>
+            <CompletedCoursesList />
+          </View>
+        )}
 
         {/* Action Buttons */}
         <View style={styles.actionsSection}>
@@ -221,6 +223,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingVertical: 16,
+    paddingTop: 24,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5EA',
