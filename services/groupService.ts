@@ -547,6 +547,37 @@ export const createReply = async (reply: Omit<Reply, 'id' | 'createdAt'>): Promi
   }
 };
 
+// Check if a user is a member of a specific group
+export const isUserMemberOfGroup = async (userId: string, groupId: string): Promise<boolean> => {
+  try {
+    const membershipsRef = collection(db, 'userGroupMemberships');
+    const membershipQuery = query(
+      membershipsRef, 
+      where('userId', '==', userId),
+      where('groupId', '==', groupId)
+    );
+    const membershipSnapshot = await getDocs(membershipQuery);
+    
+    if (membershipSnapshot.empty) {
+      return false;
+    }
+    
+    // Check if the user has left the group (leftAt property exists)
+    const membershipDoc = membershipSnapshot.docs[0];
+    const membershipData = membershipDoc.data();
+    
+    // If leftAt property exists, user is not a member
+    if (membershipData.leftAt) {
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error checking group membership:', error);
+    return false;
+  }
+};
+
 // Fetch groups that a user has joined
 export const fetchUserJoinedGroups = async (userId: string): Promise<Group[]> => {
   try {
@@ -559,8 +590,10 @@ export const fetchUserJoinedGroups = async (userId: string): Promise<Group[]> =>
       return [];
     }
 
-    // Get all group IDs the user has joined
-    const groupIds = membershipsSnapshot.docs.map(doc => doc.data().groupId);
+    // Get all group IDs the user has joined (excluding groups they've left)
+    const groupIds = membershipsSnapshot.docs
+      .filter(doc => !doc.data().leftAt) // Exclude groups where user has left
+      .map(doc => doc.data().groupId);
     
     // Fetch the actual group data for each group ID
     const groups: Group[] = [];

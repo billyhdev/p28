@@ -7,6 +7,7 @@ import {
   fetchDiscussionById, 
   fetchRepliesByDiscussionId, 
   createReply,
+  isUserMemberOfGroup,
   Discussion, 
   Reply 
 } from '../../../services/groupService';
@@ -22,6 +23,7 @@ export default function DiscussionThreadScreen() {
   const [newReply, setNewReply] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [isGroupMember, setIsGroupMember] = useState(false);
 
   useEffect(() => {
     const loadDiscussionData = async () => {
@@ -33,7 +35,11 @@ export default function DiscussionThreadScreen() {
           const fetchedDiscussion = await fetchDiscussionById(id);
           setDiscussion(fetchedDiscussion);
           
-          if (fetchedDiscussion) {
+          if (fetchedDiscussion && user) {
+            // Check if user is a member of the group
+            const memberStatus = await isUserMemberOfGroup(user.uid, fetchedDiscussion.groupId);
+            setIsGroupMember(memberStatus);
+            
             // Load replies
             const fetchedReplies = await fetchRepliesByDiscussionId(id);
             setReplies(fetchedReplies);
@@ -50,7 +56,7 @@ export default function DiscussionThreadScreen() {
   }, [id]);
 
   const handleSubmitReply = async () => {
-    if (!user || !discussion || !newReply.trim()) return;
+    if (!user || !discussion || !newReply.trim() || !isGroupMember) return;
     
     try {
       setSubmitting(true);
@@ -176,28 +182,35 @@ export default function DiscussionThreadScreen() {
 
         {/* Reply Input */}
         <View style={styles.replyInputContainer}>
-          <View style={styles.replyInputWrapper}>
+          <View style={[
+            styles.replyInputWrapper,
+            !isGroupMember && styles.replyInputWrapperDisabled
+          ]}>
             <TextInput
-              style={styles.replyInput}
-              placeholder="Write a reply..."
+              style={[
+                styles.replyInput,
+                !isGroupMember && styles.replyInputDisabled
+              ]}
+              placeholder={isGroupMember ? "Write a reply..." : "Join the group to participate in discussions"}
               value={newReply}
               onChangeText={setNewReply}
               multiline
               maxLength={500}
               placeholderTextColor="#8E8E93"
+              editable={isGroupMember}
             />
             <TouchableOpacity
               style={[
                 styles.submitButton,
-                (!newReply.trim() || submitting) && styles.submitButtonDisabled
+                (!newReply.trim() || submitting || !isGroupMember) && styles.submitButtonDisabled
               ]}
               onPress={handleSubmitReply}
-              disabled={!newReply.trim() || submitting}
+              disabled={!newReply.trim() || submitting || !isGroupMember}
             >
               <Ionicons 
-                name="send" 
+                name={isGroupMember ? "send" : "lock-closed"}
                 size={20} 
-                color={newReply.trim() && !submitting ? '#FFFFFF' : '#8E8E93'} 
+                color={newReply.trim() && !submitting && isGroupMember ? '#FFFFFF' : '#8E8E93'} 
               />
             </TouchableOpacity>
           </View>
@@ -358,12 +371,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
+  replyInputWrapperDisabled: {
+    backgroundColor: '#F8F9FA',
+    opacity: 0.6,
+  },
   replyInput: {
     flex: 1,
     fontSize: 16,
     color: '#000000',
     maxHeight: 100,
     paddingVertical: 8,
+  },
+  replyInputDisabled: {
+    color: '#8E8E93',
   },
   submitButton: {
     width: 36,

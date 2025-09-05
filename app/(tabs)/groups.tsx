@@ -11,9 +11,6 @@ export default function GroupsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeCategory, setActiveCategory] = useState<'all' | 'ministries' | 'forums'>('all');
-  const [selectedCountry, setSelectedCountry] = useState<string>('all');
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
-  const [showFilters, setShowFilters] = useState(false);
 
   const loadGroups = async () => {
     try {
@@ -50,19 +47,9 @@ export default function GroupsScreen() {
     router.push(`/screens/group-detail/${group.id}`);
   };
 
-  // Get unique countries and languages for filter options
-  const countries = ['all', ...Array.from(new Set(groups.map(g => g.country)))];
-  const languages = ['all', ...Array.from(new Set(groups.map(g => g.language)))];
-
   const filteredGroups = groups.filter(group => {
     // Category filter
     if (activeCategory !== 'all' && group.category !== activeCategory) return false;
-    
-    // Country filter
-    if (selectedCountry !== 'all' && group.country !== selectedCountry) return false;
-    
-    // Language filter
-    if (selectedLanguage !== 'all' && group.language !== selectedLanguage) return false;
     
     return true;
   });
@@ -181,85 +168,8 @@ export default function GroupsScreen() {
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.filterButton, showFilters && styles.activeFilterButton]}
-          onPress={() => setShowFilters(!showFilters)}
-        >
-          <Ionicons 
-            name="filter" 
-            size={16} 
-            color={showFilters ? '#FFFFFF' : '#007AFF'} 
-          />
-          <Text style={[styles.filterButtonText, showFilters && styles.activeFilterButtonText]}>
-            Filters
-          </Text>
-        </TouchableOpacity>
       </View>
 
-      {/* Advanced Filters */}
-      {showFilters && (
-        <View style={styles.advancedFilters}>
-          {/* Country Filter */}
-          <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>Country</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterOptions}>
-              {countries.map((country) => (
-                <TouchableOpacity
-                  key={country}
-                  style={[
-                    styles.filterOption,
-                    selectedCountry === country && styles.activeFilterOption
-                  ]}
-                  onPress={() => setSelectedCountry(country)}
-                >
-                  <Text style={[
-                    styles.filterOptionText,
-                    selectedCountry === country && styles.activeFilterOptionText
-                  ]}>
-                    {country === 'all' ? 'All Countries' : country}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-
-          {/* Language Filter */}
-          <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>Language</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterOptions}>
-              {languages.map((language) => (
-                <TouchableOpacity
-                  key={language}
-                  style={[
-                    styles.filterOption,
-                    selectedLanguage === language && styles.activeFilterOption
-                  ]}
-                  onPress={() => setSelectedLanguage(language)}
-                >
-                  <Text style={[
-                    styles.filterOptionText,
-                    selectedLanguage === language && styles.activeFilterOptionText
-                  ]}>
-                    {language === 'all' ? 'All Languages' : language}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-
-          {/* Clear Filters */}
-          <TouchableOpacity
-            style={styles.clearFiltersButton}
-            onPress={() => {
-              setSelectedCountry('all');
-              setSelectedLanguage('all');
-            }}
-          >
-            <Ionicons name="refresh" size={16} color="#007AFF" />
-            <Text style={styles.clearFiltersText}>Clear Filters</Text>
-          </TouchableOpacity>
-        </View>
-      )}
 
       {/* Groups List */}
       {filteredGroups.length === 0 ? (
@@ -443,85 +353,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#8E8E93',
     marginLeft: 4,
-  },
-  filterButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    marginLeft: 12,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-  },
-  activeFilterButton: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
-  },
-  filterButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#007AFF',
-    marginLeft: 4,
-  },
-  activeFilterButtonText: {
-    color: '#FFFFFF',
-  },
-  advancedFilters: {
-    backgroundColor: '#FFFFFF',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
-  },
-  filterSection: {
-    marginBottom: 20,
-  },
-  filterLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000000',
-    marginBottom: 12,
-  },
-  filterOptions: {
-    flexDirection: 'row',
-  },
-  filterOption: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    backgroundColor: '#F8F9FA',
-  },
-  activeFilterOption: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
-  },
-  filterOptionText: {
-    fontSize: 14,
-    color: '#8E8E93',
-  },
-  activeFilterOptionText: {
-    color: '#FFFFFF',
-    fontWeight: '500',
-  },
-  clearFiltersButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    backgroundColor: '#F0F8FF',
-    borderWidth: 1,
-    borderColor: '#007AFF',
-  },
-  clearFiltersText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#007AFF',
-    marginLeft: 8,
   },
   groupLocation: {
     flexDirection: 'row',

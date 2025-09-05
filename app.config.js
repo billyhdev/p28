@@ -31,18 +31,18 @@ export default {
     scheme: 'p28',
     plugins: [
       'expo-router',
-      [
-        "expo-splash-screen",
-        {
-          "backgroundColor": "#232323",
-          "image": "./assets/splash-icon.png",
-          "dark": {
-            "image": "./assets/splash-icon.png",
-            "backgroundColor": "#000000"
-          },
-          "imageWidth": 200
-        }
-      ]
+      // [
+      //   "expo-splash-screen",
+      //   {
+      //     "backgroundColor": "#232323",
+      //     "image": "./assets/splash-icon.png",
+      //     "dark": {
+      //       "image": "./assets/splash-icon.png",
+      //       "backgroundColor": "#000000"
+      //     },
+      //     "imageWidth": 200
+      //   }
+      // ]
     ],
     extra: {
       eas: {

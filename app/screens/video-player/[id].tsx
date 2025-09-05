@@ -323,6 +323,9 @@ const styles = StyleSheet.create({
   },
   videoContainer: {
     backgroundColor: '#000000',
+    minHeight: 250,
+    width: '100%',
+    overflow: 'visible',
   },
   content: {
     flex: 1,

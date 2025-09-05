@@ -10,8 +10,9 @@ interface VideoPlayerProps {
   fullWidth?: boolean; // New prop to control margins
 }
 
-const { width } = Dimensions.get('window');
-const videoHeight = width * 0.5625; // 16:9 aspect ratio
+const { width, height } = Dimensions.get('window');
+const videoHeight = Math.max(width * 0.5625, 250); // 16:9 aspect ratio with minimum height
+const videoWidth = width; // Use full screen width
 
 export default function VideoPlayer({ video, onVideoEnd, onVideoProgress, fullWidth = false }: VideoPlayerProps) {
   const [playing, setPlaying] = useState(false);
@@ -64,7 +65,7 @@ export default function VideoPlayer({ video, onVideoEnd, onVideoProgress, fullWi
     <View style={[styles.container, fullWidth && styles.fullWidthContainer]}>
       <YoutubePlayer
         height={videoHeight}
-        width={width}
+        width={videoWidth}
         play={playing}
         videoId={videoId}
         onStateChange={onStateChange}
@@ -77,7 +78,12 @@ export default function VideoPlayer({ video, onVideoEnd, onVideoProgress, fullWi
           cc_lang_pref: 'us',
           showClosedCaptions: true,
           rel: 0,
-          modestbranding: 1,
+          modestbranding: 0,
+          controls: 1,
+          fs: 1,
+          iv_load_policy: 3,
+          enablejsapi: 1,
+          origin: 'https://www.youtube.com',
         }}
         webViewStyle={styles.webView}
         webViewProps={{
@@ -109,12 +115,14 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginHorizontal: 16,
     marginVertical: 8,
-    minHeight: 200, // Minimum height requirement for YouTube player
+    minHeight: 250, // Increased minimum height for better control visibility
   },
   fullWidthContainer: {
     marginHorizontal: 0,
     marginVertical: 0,
     borderRadius: 0,
+    width: '100%',
+    overflow: 'visible',
   },
   webView: {
     opacity: 0.99,

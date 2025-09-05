@@ -1,42 +1,66 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import VideoPlayer from '../../../components/VideoPlayer';
+import { fetchVideos, Video } from '../../../services/videoService';
 
-interface VideoData {
-  id: string;
-  title: string;
-  description: string;
-  thumbnail: string;
-  channel: string;
-  duration: string;
-  views: string;
-  publishedAt: string;
-  youtubeUrl: string;
-}
 
 export default function WatchVideoScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   
-  // Sample video data - in a real app, this would be fetched based on the ID
-  const [video] = useState<VideoData>({
-    id: id as string,
-    title: 'React Native Tutorial for Beginners',
-    description: 'Learn React Native from scratch with this comprehensive tutorial. We\'ll cover everything from basic concepts to advanced features, including state management, navigation, and API integration.',
-    thumbnail: 'https://img.youtube.com/vi/CGbNw855ksw/maxresdefault.jpg',
-    channel: 'Programming Hub',
-    duration: '15:30',
-    views: '125K',
-    publishedAt: '2 weeks ago',
-    youtubeUrl: 'https://www.youtube.com/watch?v=CGbNw855ksw',
-  });
+  const [video, setVideo] = useState<Video | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadVideo = async () => {
+      try {
+        setLoading(true);
+        const videos = await fetchVideos();
+        const foundVideo = videos.find(v => v.id === id);
+        setVideo(foundVideo || null);
+      } catch (error) {
+        console.error('Error loading video:', error);
+        setVideo(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      loadVideo();
+    }
+  }, [id]);
 
   const handleBack = () => {
     router.back();
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
+          <Text style={styles.loadingText}>Loading video...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!video) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Video not found</Text>
+          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+            <Text style={styles.backText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -57,10 +81,11 @@ export default function WatchVideoScreen() {
             id: video.id,
             title: video.title,
             description: video.description,
-            youtubeUrl: video.youtubeUrl,
-            duration: 930, // Convert 15:30 to seconds
-            thumbnail: video.thumbnail,
+            youtubeUrl: video.videoUrl,
+            duration: 930, // Convert duration to seconds if needed
+            thumbnail: video.thumbnailUrl,
           }}
+          fullWidth={true}
         />
       </View>
 
@@ -68,51 +93,9 @@ export default function WatchVideoScreen() {
       <ScrollView style={styles.content}>
         <View style={styles.videoInfo}>
           <Text style={styles.videoTitle}>{video.title}</Text>
-          
-          <View style={styles.videoStats}>
-            <Text style={styles.videoViews}>{video.views} views</Text>
-            <Text style={styles.videoDot}>•</Text>
-            <Text style={styles.videoDate}>{video.publishedAt}</Text>
-          </View>
-
-          <View style={styles.channelInfo}>
-            <View style={styles.channelAvatar}>
-              <Ionicons name="person-circle" size={40} color="#007AFF" />
-            </View>
-            <View style={styles.channelDetails}>
-              <Text style={styles.channelName}>{video.channel}</Text>
-              <Text style={styles.subscriberCount}>1.2M subscribers</Text>
-            </View>
-            <TouchableOpacity style={styles.subscribeButton}>
-              <Text style={styles.subscribeButtonText}>Subscribe</Text>
-            </TouchableOpacity>
-          </View>
-
           <Text style={styles.videoDescription}>{video.description}</Text>
         </View>
 
-        {/* Action Buttons */}
-        <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.actionButton}>
-            <Ionicons name="thumbs-up-outline" size={20} color="#8E8E93" />
-            <Text style={styles.actionButtonText}>Like</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.actionButton}>
-            <Ionicons name="thumbs-down-outline" size={20} color="#8E8E93" />
-            <Text style={styles.actionButtonText}>Dislike</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.actionButton}>
-            <Ionicons name="chatbubble-outline" size={20} color="#8E8E93" />
-            <Text style={styles.actionButtonText}>Comment</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.actionButton}>
-            <Ionicons name="share-outline" size={20} color="#8E8E93" />
-            <Text style={styles.actionButtonText}>Share</Text>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -142,6 +125,9 @@ const styles = StyleSheet.create({
   },
   videoContainer: {
     backgroundColor: '#000000',
+    minHeight: 250,
+    width: '100%',
+    overflow: 'visible',
   },
   content: {
     flex: 1,
@@ -154,61 +140,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#000000',
-    marginBottom: 8,
+    marginBottom: 16,
     lineHeight: 24,
-  },
-  videoStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  videoViews: {
-    fontSize: 14,
-    color: '#8E8E93',
-  },
-  videoDot: {
-    fontSize: 14,
-    color: '#8E8E93',
-    marginHorizontal: 8,
-  },
-  videoDate: {
-    fontSize: 14,
-    color: '#8E8E93',
-  },
-  channelInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
-  },
-  channelAvatar: {
-    marginRight: 12,
-  },
-  channelDetails: {
-    flex: 1,
-  },
-  channelName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000000',
-    marginBottom: 2,
-  },
-  subscriberCount: {
-    fontSize: 14,
-    color: '#8E8E93',
-  },
-  subscribeButton: {
-    backgroundColor: '#FF0000',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 18,
-  },
-  subscribeButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FFFFFF',
   },
   videoDescription: {
     fontSize: 14,
@@ -216,18 +149,33 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 20,
   },
-  actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  actionButton: {
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#000000',
   },
-  actionButtonText: {
-    fontSize: 12,
-    color: '#8E8E93',
-    marginTop: 4,
+  loadingText: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    marginTop: 12,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000000',
+    paddingHorizontal: 20,
+  },
+  errorText: {
+    fontSize: 18,
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  backText: {
+    fontSize: 16,
+    color: '#007AFF',
+    fontWeight: '500',
   },
 });

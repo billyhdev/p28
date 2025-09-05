@@ -24,41 +24,7 @@ export default function HomeScreen() {
       setLoading(true);
       const groups = await fetchUserJoinedGroups(user?.uid || '');
       console.log('Loaded groups:', groups);
-      
-      // If no groups found, show sample data for testing
-      if (groups.length === 0) {
-        const sampleGroups = [
-          {
-            id: '1',
-            title: 'Youth Ministry',
-            description: 'A vibrant community for young people to grow in faith and fellowship together.',
-            image: 'https://images.unsplash.com/photo-1544717297-fa95b6ee9643?w=400',
-            category: 'ministries' as const,
-            country: 'United States',
-            language: 'English',
-            memberCount: 25,
-            discussionCount: 12,
-            createdAt: new Date(),
-            createdBy: 'admin'
-          },
-          {
-            id: '2',
-            title: 'Prayer Warriors',
-            description: 'Join us in powerful prayer sessions and intercession for our community.',
-            image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
-            category: 'ministries' as const,
-            country: 'Canada',
-            language: 'English',
-            memberCount: 18,
-            discussionCount: 8,
-            createdAt: new Date(),
-            createdBy: 'admin'
-          }
-        ];
-        setJoinedGroups(sampleGroups);
-      } else {
-        setJoinedGroups(groups);
-      }
+      setJoinedGroups(groups);
     } catch (error) {
       console.error('Error loading joined groups:', error);
     } finally {
