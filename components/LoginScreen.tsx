@@ -9,6 +9,7 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import {
@@ -77,6 +78,7 @@ export default function LoginScreen({ onLoginSuccess, onNavigateToSignUp }: Logi
         <View style={styles.content}>
           {/* Header */}
           <View style={styles.header}>
+            <Image source={require('../assets/splash-icon.png')} style={styles.logo} />
             <Text style={styles.title}>Welcome Back</Text>
             <Text style={styles.subtitle}>Sign in to continue</Text>
           </View>
@@ -151,6 +153,12 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     marginBottom: 40,
+  },
+  logo: {
+    width: 120,
+    height: 120,
+    marginBottom: 24,
+    resizeMode: 'contain',
   },
   title: {
     fontSize: 32,
