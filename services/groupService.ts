@@ -546,3 +546,48 @@ export const createReply = async (reply: Omit<Reply, 'id' | 'createdAt'>): Promi
     throw error;
   }
 };
+
+// Fetch groups that a user has joined
+export const fetchUserJoinedGroups = async (userId: string): Promise<Group[]> => {
+  try {
+    // First, get all group memberships for the user
+    const membershipsRef = collection(db, 'userGroupMemberships');
+    const membershipsQuery = query(membershipsRef, where('userId', '==', userId));
+    const membershipsSnapshot = await getDocs(membershipsQuery);
+    
+    if (membershipsSnapshot.empty) {
+      return [];
+    }
+
+    // Get all group IDs the user has joined
+    const groupIds = membershipsSnapshot.docs.map(doc => doc.data().groupId);
+    
+    // Fetch the actual group data for each group ID
+    const groups: Group[] = [];
+    for (const groupId of groupIds) {
+      const groupDoc = await getDoc(doc(db, 'groups', groupId));
+      if (groupDoc.exists()) {
+        const data = groupDoc.data();
+        groups.push({
+          id: groupDoc.id,
+          title: data.title,
+          description: data.description,
+          image: data.image,
+          category: data.category,
+          country: data.country || 'Unknown',
+          language: data.language || 'English',
+          memberCount: data.memberCount || 0,
+          discussionCount: data.discussionCount || 0,
+          createdAt: data.createdAt?.toDate() || new Date(),
+          createdBy: data.createdBy,
+        });
+      }
+    }
+
+    // Sort by join date (most recently joined first)
+    return groups.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  } catch (error) {
+    console.error('Error fetching user joined groups:', error);
+    return [];
+  }
+};
