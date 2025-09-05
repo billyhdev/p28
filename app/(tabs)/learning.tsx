@@ -67,30 +67,44 @@ export default function LearningScreen() {
         </Text>
       </View>
 
-      {courses.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="school-outline" size={64} color="#C7C7CC" />
-          <Text style={styles.emptyTitle}>No Courses Available</Text>
-          <Text style={styles.emptySubtitle}>
-            Check back later for new courses or pull to refresh
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={courses}
-          renderItem={renderCourse}
-          keyExtractor={(item) => item.id}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.courseList}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              colors={['#007AFF']}
-              tintColor="#007AFF"
+      {/* Coming Soon Overlay */}
+      <View style={styles.comingSoonContainer}>
+        <Ionicons name="school-outline" size={80} color="#8E8E93" />
+        <Text style={styles.comingSoonTitle}>Coming Soon</Text>
+        <Text style={styles.comingSoonText}>
+          We're working on bringing you amazing courses and learning experiences. Stay tuned!
+        </Text>
+      </View>
+
+      {/* Hidden: Keep all existing code for future use */}
+      {false && (
+        <>
+          {courses.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Ionicons name="school-outline" size={64} color="#C7C7CC" />
+              <Text style={styles.emptyTitle}>No Courses Available</Text>
+              <Text style={styles.emptySubtitle}>
+                Check back later for new courses or pull to refresh
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              data={courses}
+              renderItem={renderCourse}
+              keyExtractor={(item) => item.id}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.courseList}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  colors={['#007AFF']}
+                  tintColor="#007AFF"
+                />
+              }
             />
-          }
-        />
+          )}
+        </>
       )}
     </SafeAreaView>
   );
@@ -149,5 +163,24 @@ const styles = StyleSheet.create({
     color: '#C7C7CC',
     textAlign: 'center',
     lineHeight: 22,
+  },
+  comingSoonContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  comingSoonTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#1C1C1E',
+    marginTop: 20,
+    marginBottom: 16,
+  },
+  comingSoonText: {
+    fontSize: 18,
+    color: '#8E8E93',
+    textAlign: 'center',
+    lineHeight: 26,
   },
 });
