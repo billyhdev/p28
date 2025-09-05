@@ -1,7 +1,7 @@
 export default {
   expo: {
     name: 'P28',
-    slug: 'p28',
+    slug: 'blue-ocean-platform',
     version: '1.0.0',
     orientation: 'portrait',
     icon: './assets/icon.png',
@@ -30,11 +30,23 @@ export default {
     },
     scheme: 'p28',
     plugins: [
-      'expo-router'
+      'expo-router',
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#232323",
+          "image": "./assets/splash-icon.png",
+          "dark": {
+            "image": "./assets/splash-icon.png",
+            "backgroundColor": "#000000"
+          },
+          "imageWidth": 200
+        }
+      ]
     ],
     extra: {
       eas: {
-        projectId: 'your-project-id'
+        projectId: '2685a3df-7455-482a-85d4-07b886ae58ec'
       }
     }
   }
