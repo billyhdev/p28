@@ -10,6 +10,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Modal,
+  FlatList,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -24,6 +26,19 @@ interface SignUpScreenProps {
   onBackToLogin: () => void;
 }
 
+const COUNTRIES = [
+  'Afghanistan', 'Albania', 'Algeria', 'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaijan',
+  'Bahrain', 'Bangladesh', 'Belarus', 'Belgium', 'Brazil', 'Bulgaria', 'Cambodia', 'Canada',
+  'Chile', 'China', 'Colombia', 'Croatia', 'Czech Republic', 'Denmark', 'Egypt', 'Estonia',
+  'Finland', 'France', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Hungary', 'Iceland',
+  'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy', 'Japan',
+  'Jordan', 'Kazakhstan', 'Kenya', 'Kuwait', 'Latvia', 'Lebanon', 'Lithuania', 'Luxembourg',
+  'Malaysia', 'Mexico', 'Morocco', 'Netherlands', 'New Zealand', 'Nigeria', 'Norway', 'Pakistan',
+  'Philippines', 'Poland', 'Portugal', 'Qatar', 'Romania', 'Russia', 'Saudi Arabia', 'Singapore',
+  'Slovakia', 'Slovenia', 'South Africa', 'South Korea', 'Spain', 'Sri Lanka', 'Sweden', 'Switzerland',
+  'Thailand', 'Turkey', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States', 'Vietnam'
+];
+
 export default function SignUpScreen({ onSignUpSuccess, onBackToLogin }: SignUpScreenProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,6 +48,7 @@ export default function SignUpScreen({ onSignUpSuccess, onBackToLogin }: SignUpS
   const [country, setCountry] = useState('');
   const [birthdate, setBirthdate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSignUp = async () => {
@@ -105,6 +121,11 @@ export default function SignUpScreen({ onSignUpSuccess, onBackToLogin }: SignUpS
     }
   };
 
+  const handleCountrySelect = (selectedCountry: string) => {
+    setCountry(selectedCountry);
+    setShowCountryPicker(false);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
@@ -148,14 +169,15 @@ export default function SignUpScreen({ onSignUpSuccess, onBackToLogin }: SignUpS
 
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Country *</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter your country"
-                  value={country}
-                  onChangeText={setCountry}
-                  autoCapitalize="words"
-                  autoCorrect={false}
-                />
+                <TouchableOpacity
+                  style={styles.dropdownInput}
+                  onPress={() => setShowCountryPicker(true)}
+                >
+                  <Text style={[styles.dropdownText, !country && styles.placeholderText]}>
+                    {country || 'Select your country'}
+                  </Text>
+                  <Text style={styles.dropdownArrow}>▼</Text>
+                </TouchableOpacity>
               </View>
 
               <View style={styles.inputContainer}>
@@ -168,6 +190,17 @@ export default function SignUpScreen({ onSignUpSuccess, onBackToLogin }: SignUpS
                     {birthdate.toLocaleDateString()}
                   </Text>
                 </TouchableOpacity>
+                {showDatePicker && (
+                  <View style={styles.datePickerContainer}>
+                    <DateTimePicker
+                      value={birthdate}
+                      mode="date"
+                      display="default"
+                      onChange={onDateChange}
+                      maximumDate={new Date()}
+                    />
+                  </View>
+                )}
               </View>
 
               <View style={styles.inputContainer}>
@@ -229,15 +262,41 @@ export default function SignUpScreen({ onSignUpSuccess, onBackToLogin }: SignUpS
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {showDatePicker && (
-        <DateTimePicker
-          value={birthdate}
-          mode="date"
-          display="default"
-          onChange={onDateChange}
-          maximumDate={new Date()}
-        />
-      )}
+      {/* Country Picker Modal */}
+      <Modal
+        visible={showCountryPicker}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowCountryPicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Country</Text>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setShowCountryPicker(false)}
+              >
+                <Text style={styles.closeButtonText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={COUNTRIES}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.countryItem}
+                  onPress={() => handleCountrySelect(item)}
+                >
+                  <Text style={styles.countryText}>{item}</Text>
+                  {country === item && <Text style={styles.selectedIcon}>✓</Text>}
+                </TouchableOpacity>
+              )}
+              style={styles.countryList}
+            />
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -308,6 +367,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#1a1a1a',
   },
+  datePickerContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e1e5e9',
+    zIndex: 1000,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
   button: {
     borderRadius: 12,
     paddingVertical: 16,
@@ -337,5 +415,90 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     fontSize: 14,
     fontWeight: '600',
+  },
+  // Dropdown styles
+  dropdownInput: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e1e5e9',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dropdownText: {
+    fontSize: 16,
+    color: '#1a1a1a',
+    flex: 1,
+  },
+  placeholderText: {
+    color: '#999',
+  },
+  dropdownArrow: {
+    fontSize: 12,
+    color: '#666',
+    marginLeft: 8,
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '70%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e1e5e9',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1a1a1a',
+  },
+  closeButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    fontSize: 16,
+    color: '#666',
+  },
+  countryList: {
+    maxHeight: 400,
+  },
+  countryItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  countryText: {
+    fontSize: 16,
+    color: '#1a1a1a',
+    flex: 1,
+  },
+  selectedIcon: {
+    fontSize: 16,
+    color: '#007AFF',
+    fontWeight: 'bold',
   },
 });
