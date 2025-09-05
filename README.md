@@ -120,6 +120,43 @@ p28/
 
 The main application code is in `App.tsx`. Start editing this file to modify the app. The app will automatically reload when you save changes.
 
+## Firebase Authentication Setup
+
+To enable Firebase Authentication with Email/Password:
+
+### 1. Create Firebase Project
+
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Create a new project or select an existing one
+3. Enable Authentication in the Firebase console
+4. Enable Email/Password sign-in method
+
+### 2. Add Web App to Firebase
+
+1. Click "Add app" and select Web
+2. Register your app with a nickname (e.g., "P28 Web")
+3. Copy the Firebase configuration object
+4. Update `config/firebase.ts` with your configuration
+
+### 3. Enable Firestore Database
+
+1. Go to Firestore Database in Firebase Console
+2. Create a database in test mode
+3. Set up security rules for user data access
+
+### 4. Configuration Status
+
+The following configuration has been completed:
+- ✅ `config/firebase.ts` - Firebase config and Firestore setup
+- ✅ Email/Password authentication implemented
+- ✅ User profile management with Firestore
+
+### 5. Install Dependencies
+
+The following packages are already installed:
+- `firebase` - Firebase JavaScript SDK
+- `@react-native-community/datetimepicker` - Date picker for registration
+
 ## Building for Production
 
 When you're ready to build for production:
