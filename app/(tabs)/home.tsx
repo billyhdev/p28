@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, RefreshControl, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -141,42 +141,64 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>My Groups</Text>
-        <Text style={styles.subtitle}>Quick access to your joined groups</Text>
-      </View>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header}>
+          <Text style={styles.title}>My Groups</Text>
+          <Text style={styles.subtitle}>Quick access to your joined groups</Text>
+        </View>
 
-      {joinedGroups.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <View style={styles.iconContainer}>
-            <Ionicons name="people-outline" size={64} color="#8E8E93" />
+        {joinedGroups.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <View style={styles.iconContainer}>
+              <Ionicons name="people-outline" size={64} color="#8E8E93" />
+            </View>
+            <Text style={styles.emptyTitle}>No Groups Yet</Text>
+            <Text style={styles.emptyDescription}>
+              You haven't joined any groups yet. Explore groups to connect with others!
+            </Text>
+            <TouchableOpacity
+              style={styles.exploreButton}
+              onPress={() => router.push('/(tabs)/groups')}
+            >
+              <Text style={styles.exploreButtonText}>Explore Groups</Text>
+            </TouchableOpacity>
           </View>
-          <Text style={styles.emptyTitle}>No Groups Yet</Text>
-          <Text style={styles.emptyDescription}>
-            You haven't joined any groups yet. Explore groups to connect with others!
-          </Text>
-          <TouchableOpacity
-            style={styles.exploreButton}
-            onPress={() => router.push('/(tabs)/groups')}
-          >
-            <Text style={styles.exploreButtonText}>Explore Groups</Text>
-          </TouchableOpacity>
+        ) : (
+          <View style={styles.horizontalContainer}>
+            <FlatList
+              data={joinedGroups}
+              renderItem={renderGroupItem}
+              keyExtractor={(item) => item.id}
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalListContainer}
+            />
+          </View>
+        )}
+
+        {/* Global News Section */}
+        <View style={styles.newsSection}>
+          <View style={styles.newsSectionHeader}>
+            <Text style={styles.newsSectionTitle}>Global News</Text>
+            <Text style={styles.newsSectionSubtitle}>Latest updates from groups worldwide</Text>
+          </View>
+          
+          <View style={styles.comingSoonContainer}>
+            <Ionicons name="newspaper-outline" size={64} color="#8E8E93" />
+            <Text style={styles.comingSoonTitle}>Coming Soon</Text>
+            <Text style={styles.comingSoonText}>
+              We're working on bringing you the latest news and updates from groups around the world.
+            </Text>
+          </View>
         </View>
-      ) : (
-        <View style={styles.horizontalContainer}>
-          <FlatList
-            data={joinedGroups}
-            renderItem={renderGroupItem}
-            keyExtractor={(item) => item.id}
-            horizontal={true}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalListContainer}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-            }
-          />
-        </View>
-      )}
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -185,6 +207,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8F9FA',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   header: {
     paddingHorizontal: 20,
@@ -351,5 +379,42 @@ const styles = StyleSheet.create({
   categoryText: {
     fontSize: 12,
     fontWeight: '600',
+  },
+  // News Section Styles
+  newsSection: {
+    marginTop: 32,
+    paddingHorizontal: 20,
+  },
+  newsSectionTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1C1C1E',
+    marginBottom: 4,
+  },
+  newsSectionSubtitle: {
+    fontSize: 16,
+    color: '#8E8E93',
+    marginBottom: 20,
+  },
+  newsSectionHeader: {
+    marginBottom: 20,
+  },
+  comingSoonContainer: {
+    alignItems: 'center',
+    paddingVertical: 30,
+    paddingHorizontal: 20,
+  },
+  comingSoonTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1C1C1E',
+    marginTop: 16,
+    marginBottom: 12,
+  },
+  comingSoonText: {
+    fontSize: 16,
+    color: '#8E8E93',
+    textAlign: 'center',
+    lineHeight: 24,
   },
 });
