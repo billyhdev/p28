@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, FlatList, Alert, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { 
   fetchGroupById, 
@@ -27,6 +27,17 @@ export default function GroupDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
 
+  const loadDiscussions = async () => {
+    if (typeof id === 'string') {
+      try {
+        const fetchedDiscussions = await fetchDiscussionsByGroupId(id);
+        setDiscussions(fetchedDiscussions);
+      } catch (error) {
+        console.error('Error loading discussions:', error);
+      }
+    }
+  };
+
   useEffect(() => {
     const loadGroupData = async () => {
       if (typeof id === 'string' && user) {
@@ -39,8 +50,7 @@ export default function GroupDetailScreen() {
           
           if (fetchedGroup) {
             // Load discussions
-            const fetchedDiscussions = await fetchDiscussionsByGroupId(id);
-            setDiscussions(fetchedDiscussions);
+            await loadDiscussions();
             
             // Check membership
             const membership = await checkUserGroupMembership(user.uid, id);
@@ -57,6 +67,15 @@ export default function GroupDetailScreen() {
 
     loadGroupData();
   }, [id, user]);
+
+  // Reload discussions when screen comes into focus (e.g., after creating a discussion)
+  useFocusEffect(
+    React.useCallback(() => {
+      if (group) {
+        loadDiscussions();
+      }
+    }, [group])
+  );
 
   const handleJoinGroup = async () => {
     if (!user || !group) return;

@@ -40,7 +40,10 @@ export default function CreateDiscussionScreen() {
         [
           {
             text: 'OK',
-            onPress: () => router.back(),
+            onPress: () => {
+              // Navigate back to group detail and trigger a reload
+              router.back();
+            },
           },
         ]
       );
