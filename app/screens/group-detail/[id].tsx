@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, FlatList, Alert, Switch } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, FlatList, Alert, Switch, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,6 +26,7 @@ export default function GroupDetailScreen() {
   const [subscribedToNotifications, setSubscribedToNotifications] = useState(false);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const loadDiscussions = async () => {
     if (typeof id === 'string') {
@@ -38,17 +39,27 @@ export default function GroupDetailScreen() {
     }
   };
 
+  const loadGroupData = async () => {
+    if (typeof id === 'string') {
+      try {
+        const fetchedGroup = await fetchGroupById(id);
+        setGroup(fetchedGroup);
+      } catch (error) {
+        console.error('Error loading group data:', error);
+      }
+    }
+  };
+
   useEffect(() => {
-    const loadGroupData = async () => {
+    const loadInitialData = async () => {
       if (typeof id === 'string' && user) {
         try {
           setLoading(true);
           
           // Load group
-          const fetchedGroup = await fetchGroupById(id);
-          setGroup(fetchedGroup);
+          await loadGroupData();
           
-          if (fetchedGroup) {
+          if (group) {
             // Load discussions
             await loadDiscussions();
             
@@ -65,17 +76,34 @@ export default function GroupDetailScreen() {
       }
     };
 
-    loadGroupData();
+    loadInitialData();
   }, [id, user]);
 
-  // Reload discussions when screen comes into focus (e.g., after creating a discussion)
+  // Reload group data and discussions when screen comes into focus (e.g., after creating a discussion)
   useFocusEffect(
     React.useCallback(() => {
-      if (group) {
+      if (id) {
+        // Reload both group data (for updated discussionCount) and discussions
+        loadGroupData();
         loadDiscussions();
       }
-    }, [group])
+    }, [id])
   );
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      // Reload both group data and discussions
+      await Promise.all([
+        loadGroupData(),
+        loadDiscussions()
+      ]);
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const handleJoinGroup = async () => {
     if (!user || !group) return;
@@ -210,7 +238,17 @@ export default function GroupDetailScreen() {
         </Text>
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView 
+        style={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={['#007AFF']}
+            tintColor="#007AFF"
+          />
+        }
+      >
         {/* Group Image */}
         <Image source={{ uri: group.image }} style={styles.groupImage} />
         

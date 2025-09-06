@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, RefreshControl, ActivityIndicator, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { fetchGroups, Group, initializeGroupData } from '../../services/groupService';
 
 export default function GroupsScreen() {
@@ -36,6 +36,16 @@ export default function GroupsScreen() {
   useEffect(() => {
     loadGroups();
   }, []);
+
+  // Reload groups when screen comes into focus (e.g., after creating a discussion)
+  useFocusEffect(
+    React.useCallback(() => {
+      // Only reload if groups are already loaded (not initial load)
+      if (groups.length > 0) {
+        loadGroups();
+      }
+    }, [groups.length])
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
