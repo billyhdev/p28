@@ -82,11 +82,21 @@ export default function GroupDetailScreen() {
   // Reload group data and discussions when screen comes into focus (e.g., after creating a discussion)
   useFocusEffect(
     React.useCallback(() => {
-      if (id) {
-        // Reload both group data (for updated discussionCount) and discussions
-        loadGroupData();
-        loadDiscussions();
+
+      const reloadData = async () => {
+        if (id) {
+          // Reload both group data (for updated discussionCount) and discussions
+          loadGroupData();
+          loadDiscussions();
+
+          const membership = await checkUserGroupMembership(user?.uid, id);
+          setIsMember(!!membership);
+          setSubscribedToNotifications(membership?.subscribedToNotifications || false);
+        }
       }
+
+      reloadData()
+
     }, [id])
   );
 
@@ -98,6 +108,10 @@ export default function GroupDetailScreen() {
         loadGroupData(),
         loadDiscussions()
       ]);
+
+      const membership = await checkUserGroupMembership(user?.uid, id);
+      setIsMember(!!membership);
+      setSubscribedToNotifications(membership?.subscribedToNotifications || false);
     } catch (error) {
       console.error('Error refreshing data:', error);
     } finally {

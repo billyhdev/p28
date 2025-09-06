@@ -414,12 +414,18 @@ export const fetchRepliesByDiscussionId = async (discussionId: string): Promise<
 export const checkUserGroupMembership = async (userId: string, groupId: string): Promise<UserGroupMembership | null> => {
   try {
     const membershipDoc = await getDoc(doc(db, 'userGroupMemberships', `${userId}_${groupId}`));
+    console.log('membershipDoc', membershipDoc.exists());
     if (membershipDoc.exists()) {
       const data = membershipDoc.data();
+
+      if (data.leftAt || !data.joinedAt) {
+        return null;
+      }
+
       return {
         userId: data.userId,
         groupId: data.groupId,
-        joinedAt: data.joinedAt?.toDate() || new Date(),
+        joinedAt: data.joinedAt?.toDate(),
         subscribedToNotifications: data.subscribedToNotifications || false,
       };
     }
